@@ -1,63 +1,44 @@
 # Guía para Generar el APK con GitHub Actions
 
-Este proyecto ya cuenta con la configuración lista para empaquetarse en un archivo **APK de Android** automáticamente cada vez que subas cambios o ejecutes el flujo manualmente en GitHub.
+Este proyecto ya cuenta con la configuración corregida y lista para compilar el **APK de Android** en GitHub Actions sin errores de dependencias ni advertencias de Node.
 
 ---
 
-## 📁 Archivos Creados
+## 🛠️ Correcciones Realizadas para el Error
 
-1. **`.github/workflows/build-apk.yml`**:
-   - Flujo de trabajo de GitHub Actions automatizado.
-   - Instala Node.js 20, Java JDK 17 y Android SDK.
-   - Compila la aplicación web (`npm run build`).
-   - Sincroniza con Capacitor Android y aplica permisos de red e Internet.
-   - Configura la orientación en modo horizontal/apaisado (`sensorLandscape`) óptima para la consola cassette Hi-Fi.
-   - Compila el instalador APK mediante Gradle (`./gradlew assembleDebug`).
-   - Publica el archivo resultante como un **Artefacto descargable** listo para instalar en cualquier teléfono o tablet Android.
+1. **`Dependencies lock file is not found`:**
+   - Ocurría porque `actions/setup-node` tenía activado `cache: 'npm'`, el cual exige estrictamente que exista un archivo `package-lock.json` en el repositorio.
+   - Se removió esa restricción y se generó el archivo `package-lock.json` oficial en el proyecto junto con un `.npmrc` (`legacy-peer-deps=true`).
+   - Se cambió `npm ci` por `npm install --legacy-peer-deps` para que la instalación funcione siempre, con o sin lockfile.
 
-2. **`capacitor.config.json`**:
-   - Configuración de la aplicación nativa (`com.mixcasete.youtubecassette`).
-   - Nombre: `YouTube Cassette Player`.
-   - Soporte para audio/video web y peticiones seguras de streaming.
+2. **`Node 20 is being deprecated...`:**
+   - Se actualizó el entorno de ejecución en el workflow a **Node 22 (LTS)**, compatible con los nuevos runners de GitHub Actions y Capacitor 6.
 
 ---
 
-## 🚀 Pasos para Obtener el APK
+## 🚀 Pasos para Subir y Obtener el APK
 
-### 1. Subir el proyecto a un repositorio de GitHub
-Si aún no has subido el código:
+### 1. Hacer commit y push de los cambios a GitHub
+Asegúrate de incluir los archivos `.github/workflows/build-apk.yml`, `package-lock.json` y `.npmrc`:
+
 ```bash
-git init
 git add .
-git commit -m "feat: setup APK build with GitHub Actions"
-git branch -M main
-git remote add origin https://github.com/TU_USUARIO/TU_REPOSITORIO.git
-git push -u origin main
+git commit -m "fix(ci): update workflow to Node 22 and fix npm dependencies"
+git push origin main
 ```
+*(o a la rama `master` si usas esa)*
 
-### 2. Ejecutar o Ver la Construcción
-1. Ve a tu repositorio en **GitHub**.
-2. Haz clic en la pestaña **"Actions"** en la barra superior.
-3. Verás el flujo **"Build and Release Android APK"**.
-   - Se ejecutará automáticamente en cada `push` a `main` o `master`.
-   - También puedes lanzarlo manualmente seleccionando el flujo y haciendo clic en el botón **"Run workflow"**.
+### 2. Ejecutar la compilación en GitHub
+1. Entra a tu repositorio en **GitHub**.
+2. Ve a la pestaña **"Actions"**.
+3. Selecciona el flujo **"Build and Release Android APK"**.
+4. Si no inició automáticamente, pulsa en el botón **"Run workflow"** -> **"Run workflow"**.
 
 ### 3. Descargar el APK
-1. Una vez termine el flujo (marcado con un check verde ✅):
-2. Haz clic sobre la ejecución completada.
-3. Al final de la página verás la sección **Artifacts**.
-4. Descarga el paquete comprimido **`YouTube-Cassette-Player-APK`**, descomprímelo y dentro tendrás:
+1. Cuando termine con éxito (icono verde ✅):
+2. Haz clic en la ejecución completada.
+3. Desplázate hacia abajo hasta la sección **"Artifacts"**.
+4. Descarga el paquete **`YouTube-Cassette-Player-APK`**.
+5. Descomprímelo para obtener:
    - `YouTube-Cassette-Player-debug.apk`
-5. Pásalo a tu dispositivo Android e instálalo (permite la instalación de fuentes desconocidas).
-
----
-
-## 💡 Probar localmente (Opcional)
-Si tienes Android Studio instalado en tu equipo y deseas depurarlo en vivo:
-```bash
-npm install @capacitor/core @capacitor/cli @capacitor/android
-npm run build
-npx cap add android
-npx cap open android
-```
-Esto abrirá el proyecto en Android Studio donde podrás ejecutarlo en tu emulador o dispositivo conectado por USB.
+6. Transfiérelo a tu teléfono/tablet Android e instálalo.
