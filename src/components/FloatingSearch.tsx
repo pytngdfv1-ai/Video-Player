@@ -26,6 +26,7 @@ import {
   fetchYouTubeInfo,
   isYouTubeInput,
   extractYouTubeId,
+  resolveYouTubeVideoId,
   OnlineSearchResult,
   YouTubeVideoInfo,
 } from '../utils/musicSearch';
@@ -232,30 +233,44 @@ export const FloatingSearch: React.FC<FloatingSearchProps> = ({
     localStorage.removeItem('yt_cassette_floating_pos');
   };
 
-  // Convert an online track into an active playable cassette track
-  const handleSelectOnlineTrack = (item: OnlineSearchResult) => {
-    const nextNumber = `Track 0${tracks.length + 1}`;
-    const newTrack: Track = {
-      id: `online-${Date.now()}`,
-      youtubeId: `search:${item.artist} ${item.title}`,
-      title: item.title,
-      artist: item.artist,
-      album: item.album,
-      year: item.year || new Date().getFullYear(),
-      trackNumber: nextNumber,
-      side: tracks.length % 2 === 0 ? 'A' : 'B',
-      duration: item.duration || 240,
-      coverUrl: item.coverUrl,
-      genre: item.genre || 'Música',
-      customNotes: `Tema importado con carátula original de ${item.album}.`,
-      lyrics: `[Letra de ${item.title} - ${item.artist}]\n(Puedes editar esta letra desde la pestaña "Letra" en la pantalla principal para sincronizarla o exportarla en PDF)\n\n1. ${item.title}\n2. ${item.artist} - ${item.album}`,
-    };
+  const [resolvingTrackId, setResolvingTrackId] = useState<string | null>(null);
 
-    onAddCustomTrack(newTrack);
-    onSelectTrack(newTrack);
-    setAddedToast(`▶ Reproduciendo: "${item.title}"`);
-    setTimeout(() => setAddedToast(null), 2500);
-    setIsOpen(false);
+  // Convert an online track into an active playable cassette track with REAL YouTube Video ID
+  const handleSelectOnlineTrack = async (item: OnlineSearchResult) => {
+    setResolvingTrackId(item.id);
+    setAddedToast(`🔍 Localizando video oficial para "${item.title}"...`);
+
+    try {
+      const realVideoId = await resolveYouTubeVideoId(`${item.artist} ${item.title}`);
+      const nextNumber = `Track 0${tracks.length + 1}`;
+      const newTrack: Track = {
+        id: `online-${Date.now()}`,
+        youtubeId: realVideoId,
+        title: item.title,
+        artist: item.artist,
+        album: item.album,
+        year: item.year || new Date().getFullYear(),
+        trackNumber: nextNumber,
+        side: tracks.length % 2 === 0 ? 'A' : 'B',
+        duration: item.duration || 240,
+        coverUrl: item.coverUrl,
+        genre: item.genre || 'Música',
+        customNotes: `Tema importado con carátula original de ${item.album}.`,
+        lyrics: `[Letra de ${item.title} - ${item.artist}]\n(Puedes editar esta letra desde la pestaña "Letra" en la pantalla principal para sincronizarla o exportarla en PDF)\n\n1. ${item.title}\n2. ${item.artist} - ${item.album}`,
+      };
+
+      onAddCustomTrack(newTrack);
+      onSelectTrack(newTrack);
+      setAddedToast(`▶ Reproduciendo: "${item.title}"`);
+      setTimeout(() => setAddedToast(null), 2500);
+      setIsOpen(false);
+    } catch (e) {
+      console.warn('Error resolving YouTube ID:', e);
+      setAddedToast('Error al localizar video. Intenta de nuevo.');
+      setTimeout(() => setAddedToast(null), 2500);
+    } finally {
+      setResolvingTrackId(null);
+    }
   };
 
   // Play detected YouTube video from search bar
@@ -284,33 +299,39 @@ export const FloatingSearch: React.FC<FloatingSearchProps> = ({
     setIsOpen(false);
   };
 
-  // Play search term directly on YouTube
-  const handlePlayDirectSearchTerm = (query: string) => {
+  // Play search term directly on YouTube with real verified video ID
+  const handlePlayDirectSearchTerm = async (query: string) => {
     const clean = query.trim();
     if (!clean) return;
 
-    const nextNumber = `Track 0${tracks.length + 1}`;
-    const newTrack: Track = {
-      id: `search-${Date.now()}`,
-      youtubeId: `search:${clean}`,
-      title: clean,
-      artist: 'YouTube Music Search',
-      album: 'Búsqueda en YouTube',
-      year: new Date().getFullYear(),
-      trackNumber: nextNumber,
-      side: tracks.length % 2 === 0 ? 'A' : 'B',
-      duration: 240,
-      coverUrl: '/app-icon.png',
-      genre: 'En Vivo',
-      customNotes: `Búsqueda en YouTube: ${clean}`,
-      lyrics: `[Búsqueda de YouTube: ${clean}]\n(Puedes editar esta letra desde la pestaña "Letra" en la pantalla principal para personalizar tu exportación en PDF)`,
-    };
+    setAddedToast(`🔍 Localizando video oficial en YouTube para "${clean}"...`);
+    try {
+      const realVideoId = await resolveYouTubeVideoId(clean);
+      const nextNumber = `Track 0${tracks.length + 1}`;
+      const newTrack: Track = {
+        id: `search-${Date.now()}`,
+        youtubeId: realVideoId,
+        title: clean,
+        artist: 'YouTube Music',
+        album: 'Búsqueda en YouTube',
+        year: new Date().getFullYear(),
+        trackNumber: nextNumber,
+        side: tracks.length % 2 === 0 ? 'A' : 'B',
+        duration: 240,
+        coverUrl: `https://img.youtube.com/vi/${realVideoId}/hqdefault.jpg`,
+        genre: 'En Vivo',
+        customNotes: `Búsqueda en YouTube: ${clean}`,
+        lyrics: `[Búsqueda de YouTube: ${clean}]\n(Puedes editar esta letra desde la pestaña "Letra" en la pantalla principal para personalizar tu exportación en PDF)`,
+      };
 
-    onAddCustomTrack(newTrack);
-    onSelectTrack(newTrack);
-    setAddedToast(`🔍 Buscando y reproduciendo "${clean}" en YouTube...`);
-    setTimeout(() => setAddedToast(null), 2500);
-    setIsOpen(false);
+      onAddCustomTrack(newTrack);
+      onSelectTrack(newTrack);
+      setAddedToast(`▶ Reproduciendo: "${clean}"`);
+      setTimeout(() => setAddedToast(null), 2500);
+      setIsOpen(false);
+    } catch (e) {
+      console.warn('Error resolving direct search:', e);
+    }
   };
 
   // Submit manual YouTube track
@@ -829,11 +850,18 @@ export const FloatingSearch: React.FC<FloatingSearchProps> = ({
 
                             <button
                               onClick={() => handleSelectOnlineTrack(item)}
-                              className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs flex items-center gap-1 shrink-0 shadow-md transition-transform active:scale-95"
+                              disabled={resolvingTrackId === item.id}
+                              className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs flex items-center gap-1 shrink-0 shadow-md transition-transform active:scale-95 disabled:opacity-60"
                               title="Cargar en cassette y reproducir"
                             >
-                              <Play className="w-3.5 h-3.5 fill-zinc-950" />
-                              <span className="hidden sm:inline">Cargar</span>
+                              {resolvingTrackId === item.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Play className="w-3.5 h-3.5 fill-zinc-950" />
+                              )}
+                              <span className="hidden sm:inline">
+                                {resolvingTrackId === item.id ? 'Cargando...' : 'Cargar'}
+                              </span>
                             </button>
                           </div>
                         ))}

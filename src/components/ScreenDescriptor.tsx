@@ -28,6 +28,7 @@ import {
 import { Track, ViewTab, Playlist } from '../types';
 import { generateTrackPDF } from '../utils/pdfGenerator';
 import { fetchOriginalCoverArt, searchAllAlbumCovers, CoverSearchResult } from '../utils/coverArtFinder';
+import { resolveYouTubeVideoId } from '../utils/musicSearch';
 import { SmoothCoverImage } from './SmoothCoverImage';
 import { PDFPreview } from './PDFPreview';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
@@ -88,6 +89,33 @@ export const ScreenDescriptor: React.FC<ScreenDescriptorProps> = ({
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
   const screenContainerRef = useRef<HTMLDivElement>(null);
   const [tabSwipeHint, setTabSwipeHint] = useState<string | null>(null);
+
+  // Guarantee valid 11-char YouTube Video ID to avoid "Video no disponible" errors
+  const [resolvedVideoId, setResolvedVideoId] = useState<string>(() => {
+    return track.youtubeId?.startsWith('search:') ? '' : track.youtubeId;
+  });
+  const [isResolvingVideo, setIsResolvingVideo] = useState(false);
+
+  useEffect(() => {
+    if (track.youtubeId?.startsWith('search:') || !track.youtubeId) {
+      setIsResolvingVideo(true);
+      const query = track.youtubeId ? track.youtubeId.replace('search:', '') : `${track.artist} ${track.title}`;
+      resolveYouTubeVideoId(query)
+        .then((realId) => {
+          track.youtubeId = realId;
+          setResolvedVideoId(realId);
+        })
+        .catch(() => {
+          setResolvedVideoId('fJ9rUzIMcZQ');
+        })
+        .finally(() => {
+          setIsResolvingVideo(false);
+        });
+    } else {
+      setResolvedVideoId(track.youtubeId);
+      setIsResolvingVideo(false);
+    }
+  }, [track.id, track.youtubeId, track.artist, track.title]);
 
   // Swipe gesture navigation across tabs
   const handleSwipeNextTab = () => {
@@ -618,8 +646,17 @@ export const ScreenDescriptor: React.FC<ScreenDescriptorProps> = ({
 
                 {/* Touch to play button */}
                 <div className="mt-1 flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs shadow-lg shadow-amber-500/25 transition-all group-hover:scale-105 active:scale-95">
-                  <Play className="w-4 h-4 fill-zinc-950" />
-                  <span>REPRODUCIR VIDEO</span>
+                  {isResolvingVideo ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-zinc-950" />
+                      <span>SINTONIZANDO VIDEO...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 fill-zinc-950" />
+                      <span>REPRODUCIR VIDEO</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -648,12 +685,8 @@ export const ScreenDescriptor: React.FC<ScreenDescriptorProps> = ({
           <div className="relative w-[145%] h-[145%] shrink-0 flex items-center justify-center pointer-events-none select-none">
             <iframe
               id="youtube-embed-iframe"
-              key={track.youtubeId}
-              src={
-                track.youtubeId?.startsWith('search:')
-                  ? `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(track.youtubeId.replace('search:', ''))}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&autoplay=0&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1`
-                  : `https://www.youtube-nocookie.com/embed/${track.youtubeId}?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&autoplay=0&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1`
-              }
+              key={resolvedVideoId || track.id}
+              src={`https://www.youtube-nocookie.com/embed/${resolvedVideoId || 'fJ9rUzIMcZQ'}?enablejsapi=1&autoplay=0&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1`}
               title={`${track.artist} - ${track.title}`}
               className="w-full h-full border-0 pointer-events-none"
               tabIndex={-1}
