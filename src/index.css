@@ -1,0 +1,366 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Gochi+Hand&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --font-oswald: 'Oswald', sans-serif, -apple-system, system-ui;
+  --font-gochi: 'Gochi Hand', cursive, sans-serif;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}
+
+@keyframes radar-pulse {
+  0%, 100% {
+    transform: scaleY(0.3);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.animate-radar {
+  transform-origin: bottom;
+  animation: radar-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.font-oswald {
+  font-family: var(--font-oswald);
+}
+
+.font-gochi {
+  font-family: var(--font-gochi);
+}
+
+.wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* =========================================================================
+   DARK MATTE CASSETTE SHELL (IDENTICAL TO REFERENCE PHOTO @MIX.CASETE)
+   ========================================================================= */
+
+.cassette {
+  position: relative;
+  width: 580px;
+  max-width: 100%;
+  height: 360px;
+  /* Deep Matte Dark Charcoal / Obsidian Polycarbonate Body */
+  background: radial-gradient(ellipse at 50% 30%, #262932 0%, #1a1b22 60%, #111216 100%);
+  border-radius: 18px;
+  border: 2.5px solid #383d49;
+  box-shadow:
+    0 25px 60px -12px rgba(0, 0, 0, 0.95),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 0, 0, 0.8);
+  padding: 12px 16px 16px;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Left & Right Side Finger Grip Indentations */
+.cassette::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 90px;
+  background: #0d0e11;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.85);
+}
+
+.cassette::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 90px;
+  background: #0d0e11;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  box-shadow: inset -1px 0 2px rgba(0, 0, 0, 0.85);
+}
+
+/* =========================================================================
+   ROUND SILVER CORNER SCREWS
+   ========================================================================= */
+
+.screw {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #d1d5db 35%, #6b7280 75%, #374151 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.7),
+    0 0 0 1.5px #181920,
+    0 1px 2px rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+/* Screw Single Precision Drive Slot */
+.screw::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 1.8px;
+  background: #17181c;
+  border-radius: 0.5px;
+}
+
+.screw:nth-child(1) {
+  top: 10px;
+  left: 12px;
+  transform: rotate(35deg);
+}
+
+.screw:nth-child(2) {
+  top: 10px;
+  right: 12px;
+  transform: rotate(72deg);
+}
+
+.screw:nth-child(3) {
+  bottom: 10px;
+  left: 12px;
+  transform: rotate(115deg);
+}
+
+.screw:nth-child(4) {
+  bottom: 10px;
+  right: 12px;
+  transform: rotate(40deg);
+}
+
+/* =========================================================================
+   TWO-TONE LABEL IN DARK MODE (MODO OSCURO)
+   Top Strip: Deep Matte Obsidian / Charcoal Strip with Crisp White Title
+   Bottom Deck: Deep Metallic Dark-Amber / Bronze Deck with Gold Elements
+   ========================================================================= */
+
+.label {
+  position: relative;
+  width: 100%;
+  height: 252px;
+  border-radius: 12px;
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Top Dark Mode Strip: Deep Charcoal / Carbon with Bold Title */
+.label-top-strip-dark {
+  position: relative;
+  width: 100%;
+  height: 64px;
+  background: linear-gradient(180deg, #1b1e26 0%, #12141a 100%);
+  border-bottom: 2.5px solid #282a34;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 16px;
+  overflow: hidden;
+  box-shadow: inset 0 -1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* Bottom Dark-Amber / Burnt-Gold Lower Deck */
+.label-bottom-deck-dark {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  background: linear-gradient(180deg, #b86e0e 0%, #874e05 50%, #573102 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* =========================================================================
+   CENTER REEL CAPSULE (DARK PILL-SHAPED WINDOW WITH WHITE COGS & BLACK DOMES)
+   ========================================================================= */
+
+.reels-capsule {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  height: 86px;
+  background: #14161c;
+  border-radius: 43px;
+  border: 2px solid #282b35;
+  box-shadow:
+    inset 0 4px 14px rgba(0, 0, 0, 0.95),
+    0 2px 4px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  margin: 0 auto;
+  z-index: 6;
+}
+
+/* Cog Wheel Hub with White Teeth */
+.dark-reel-hub {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  /* White toothed gear ring */
+  background: radial-gradient(circle at 45% 45%, #ffffff 0%, #ebe8df 60%, #c4bfb2 100%);
+  border: 3.5px solid #ffffff;
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.7),
+    0 2px 5px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  z-index: 8;
+}
+
+/* 6 Cog Spokes */
+.dark-reel-hub span {
+  position: absolute;
+  width: 8.5px;
+  height: 100%;
+  background: #0f1116;
+  border-radius: 1px;
+}
+
+.dark-reel-hub span:nth-child(1) {
+  transform: rotate(0deg);
+}
+
+.dark-reel-hub span:nth-child(2) {
+  transform: rotate(60deg);
+}
+
+.dark-reel-hub span:nth-child(3) {
+  transform: rotate(120deg);
+}
+
+/* Glossy 3D Black Spherical Dome Center (Exactly as in photo) */
+.dark-reel-hub::after {
+  content: '';
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #5a5f6e 0%, #20222a 45%, #08090c 100%);
+  border: 1.5px solid #333642;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.9),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.45);
+  z-index: 4;
+}
+
+/* Center Rectangular Gauge Window */
+.dark-window-gauge {
+  position: relative;
+  width: 140px;
+  height: 60px;
+  background: rgba(8, 9, 12, 0.95);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 4;
+}
+
+/* =========================================================================
+   BOTTOM HEAD NOTCH TRAPEZOID (WITH 5 IDENTICAL MECHANICAL ELEMENTS)
+   [1. Round white hole] [2. Square white slot] [3. Slotted Screw] [4. Square white slot] [5. Round white hole]
+   ========================================================================= */
+
+.dark-cassette-head {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  height: 56px;
+  background: #15161b;
+  clip-path: polygon(9% 0%, 91% 0%, 100% 100%, 0% 100%);
+  border-top: 2px solid #2a2d36;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.7);
+  z-index: 6;
+}
+
+/* Circular White Guide Hole */
+.guide-hole-round {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85);
+  border: 1px solid #888888;
+}
+
+/* Square White Alignment Slot */
+.guide-slot-square {
+  width: 12px;
+  height: 12px;
+  border-radius: 2.5px;
+  background: #ffffff;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.85);
+  border: 1px solid #888888;
+}
+
+/* Center Head Slotted Screw */
+.center-head-screw {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #cfcfcf 40%, #7d7d7d 80%, #3d3d3d 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7), 0 0 0 1px #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-head-screw::before {
+  content: '';
+  width: 7px;
+  height: 1.5px;
+  background: #1a1a1a;
+  border-radius: 0.5px;
+}

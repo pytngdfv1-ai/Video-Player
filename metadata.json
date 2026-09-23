@@ -1,0 +1,6 @@
+{
+  "name": "YouTube Cassette Player",
+  "description": "Reproductor de audio y video en formato apaisado (landscape) con consola Hi-Fi estéreo, vúmetros analógicos dinámicos, botón REC para listas de reproducción, vista de covers, letras sincronizadas y exportación a PDF.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
