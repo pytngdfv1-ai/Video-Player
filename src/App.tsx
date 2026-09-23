@@ -11,7 +11,9 @@ import { PlayerControls } from './components/PlayerControls';
 import { FloatingSearch } from './components/FloatingSearch';
 import { PlaylistModal } from './components/PlaylistModal';
 import { SlidingPlaylistDrawer } from './components/SlidingPlaylistDrawer';
+import { SmartTVCastModal } from './components/SmartTVCastModal';
 import { useSwipeGesture } from './hooks/useSwipeGesture';
+import { useMediaSession } from './hooks/useMediaSession';
 import { DEFAULT_TRACKS, DEFAULT_PLAYLISTS } from './data/defaultTracks';
 import { Track, ViewTab, PlayerState, Playlist } from './types';
 
@@ -51,6 +53,7 @@ export default function App() {
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [isSlidingDrawerOpen, setIsSlidingDrawerOpen] = useState(false);
+  const [isSmartTVModalOpen, setIsSmartTVModalOpen] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<ViewTab>('video');
   const [isRecordingFeedback, setIsRecordingFeedback] = useState(false);
@@ -316,6 +319,18 @@ export default function App() {
     handleSeek(target);
   };
 
+  // Mobile Lock Screen & Background Playback Engine (MediaSession API + Audio Keep-Alive)
+  useMediaSession({
+    track: currentTrack,
+    playerState,
+    onTogglePlay: handleTogglePlay,
+    onNextTrack: handleNextTrack,
+    onPrevTrack: handlePrevTrack,
+    onSeek: handleSeek,
+    onRewind10: handleRewind10,
+    onForward10: handleForward10,
+  });
+
   const handleToggleMute = () => {
     setPlayerState((prev) => {
       const nextMuted = !prev.isMuted;
@@ -559,6 +574,7 @@ export default function App() {
         activePlaylistName={activePlaylist ? activePlaylist.name : null}
         playlistCount={playlists.length}
         onOpenPlaylists={() => setIsSlidingDrawerOpen(true)}
+        onOpenSmartTVCast={() => setIsSmartTVModalOpen(true)}
       />
 
       {/* Track Swipe HUD Alert */}
@@ -728,6 +744,14 @@ export default function App() {
         currentTrackId={currentTrack.id}
         onAddNewYouTubeTrack={handleAddCustomTrack}
         onImportPlaylist={handleImportPlaylist}
+      />
+
+      {/* Smart TV Cast & Remote Screen Sharing Modal */}
+      <SmartTVCastModal
+        isOpen={isSmartTVModalOpen}
+        onClose={() => setIsSmartTVModalOpen(false)}
+        currentTrack={currentTrack}
+        isPlaying={playerState.isPlaying}
       />
     </div>
   );

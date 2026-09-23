@@ -1,5 +1,5 @@
 import React from 'react';
-import { Disc3, ListMusic } from 'lucide-react';
+import { Disc3, ListMusic, Tv } from 'lucide-react';
 
 interface HeaderProps {
   isPlaying: boolean;
@@ -7,6 +7,7 @@ interface HeaderProps {
   activePlaylistName?: string | null;
   playlistCount: number;
   onOpenPlaylists: () => void;
+  onOpenSmartTVCast?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   activePlaylistName,
   playlistCount,
   onOpenPlaylists,
+  onOpenSmartTVCast,
 }) => {
   return (
     <header className="w-full bg-zinc-950/90 border-b border-zinc-800/80 backdrop-blur-md px-2.5 sm:px-4 py-1 sm:py-2 landscape:py-1 flex items-center justify-between select-none shrink-0 h-10 sm:h-12 landscape:h-10">
@@ -69,6 +71,19 @@ export const Header: React.FC<HeaderProps> = ({
             {playlistCount}
           </span>
         </button>
+
+        {/* Smart TV Cast Button */}
+        {onOpenSmartTVCast && (
+          <button
+            id="btn-smart-tv"
+            onClick={onOpenSmartTVCast}
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-300 hover:text-amber-400 hover:border-amber-500/50 hover:bg-zinc-800 transition-all shadow-md active:scale-95"
+            title="Compartir y transmitir a Smart TV / Chromecast"
+          >
+            <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
+            <span className="font-bold text-xs hidden md:inline">Smart TV</span>
+          </button>
+        )}
 
         {/* Audio status */}
         <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
