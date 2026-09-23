@@ -10,6 +10,8 @@ import { HiFiConsole } from './components/HiFiConsole';
 import { PlayerControls } from './components/PlayerControls';
 import { FloatingSearch } from './components/FloatingSearch';
 import { PlaylistModal } from './components/PlaylistModal';
+import { SlidingPlaylistDrawer } from './components/SlidingPlaylistDrawer';
+import { useSwipeGesture } from './hooks/useSwipeGesture';
 import { DEFAULT_TRACKS, DEFAULT_PLAYLISTS } from './data/defaultTracks';
 import { Track, ViewTab, PlayerState, Playlist } from './types';
 
@@ -48,10 +50,13 @@ export default function App() {
 
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [isSlidingDrawerOpen, setIsSlidingDrawerOpen] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<ViewTab>('video');
   const [isRecordingFeedback, setIsRecordingFeedback] = useState(false);
   const [recToast, setRecToast] = useState<string | null>(null);
+  const [trackSwipeToast, setTrackSwipeToast] = useState<{ type: 'next' | 'prev'; title: string } | null>(null);
+  const consoleSectionRef = useRef<HTMLElement>(null);
 
   const [playerState, setPlayerState] = useState<PlayerState>({
     isPlaying: false,
@@ -143,6 +148,32 @@ export default function App() {
       setCurrentTrackIndex((prev) => (prev - 1 + playableTracks.length) % playableTracks.length);
     }
   };
+
+  // Swipe on Hi-Fi Audio Console to change tracks
+  useSwipeGesture({
+    targetRef: consoleSectionRef,
+    onSwipeLeft: () => {
+      handleNextTrack();
+      setTrackSwipeToast({ type: 'next', title: 'Pista Siguiente' });
+      setTimeout(() => setTrackSwipeToast(null), 1500);
+    },
+    onSwipeRight: () => {
+      handlePrevTrack();
+      setTrackSwipeToast({ type: 'prev', title: 'Pista Anterior' });
+      setTimeout(() => setTrackSwipeToast(null), 1500);
+    },
+    threshold: 45,
+  });
+
+  // Global right-to-left swipe to slide in the playlist drawer
+  useSwipeGesture({
+    onSwipeLeft: () => {
+      if (!isSlidingDrawerOpen && !isPlaylistModalOpen) {
+        setIsSlidingDrawerOpen(true);
+      }
+    },
+    threshold: 75,
+  });
 
   // Listen to real YouTube Player API events via postMessage
   useEffect(() => {
@@ -527,8 +558,18 @@ export default function App() {
         activeTrackNumber={currentDisplayNumber}
         activePlaylistName={activePlaylist ? activePlaylist.name : null}
         playlistCount={playlists.length}
-        onOpenPlaylists={() => setIsPlaylistModalOpen(true)}
+        onOpenPlaylists={() => setIsSlidingDrawerOpen(true)}
       />
+
+      {/* Track Swipe HUD Alert */}
+      {trackSwipeToast && (
+        <div className="fixed top-14 right-6 sm:right-12 z-50 pointer-events-none animate-in fade-in zoom-in-95">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/95 border border-amber-500/80 text-amber-300 font-mono text-xs font-bold shadow-[0_10px_35px_rgba(245,158,11,0.35)] backdrop-blur-md">
+            <span>{trackSwipeToast.type === 'next' ? '⏩' : '⏪'}</span>
+            <span>{trackSwipeToast.title}</span>
+          </div>
+        </div>
+      )}
 
       {/* Recording Alert Banner / REC Toast */}
       {recToast && (
@@ -574,7 +615,7 @@ export default function App() {
             onUpdateTrackCover={handleUpdateTrackCover}
             playlists={playlists}
             activePlaylistName={activePlaylist ? activePlaylist.name : null}
-            onOpenPlaylists={() => setIsPlaylistModalOpen(true)}
+            onOpenPlaylists={() => setIsSlidingDrawerOpen(true)}
             onAddCurrentTrackToPlaylist={(playlistId) =>
               handleAddTrackToPlaylist(playlistId, currentTrack.id)
             }
@@ -583,9 +624,10 @@ export default function App() {
 
         {/* PARTE 2 DE LA PANTALLA: Hi-Fi Audio Console & Player Controls Deck */}
         <section
+          ref={consoleSectionRef}
           id="screen-part-2"
           aria-label="Consola de Audio Hi-Fi y Controles del Reproductor"
-          className="flex-1 min-h-0 w-full landscape:w-1/2 md:w-1/2 flex flex-col justify-between items-center gap-1 sm:gap-2 p-1.5 sm:p-3 bg-gradient-to-b from-zinc-900/80 to-zinc-950/90 rounded-2xl border border-zinc-800/90 shadow-2xl backdrop-blur-md overflow-hidden"
+          className="flex-1 min-h-0 w-full landscape:w-1/2 md:w-1/2 flex flex-col justify-between items-center gap-1 sm:gap-2 p-1.5 sm:p-3 bg-gradient-to-b from-zinc-900/80 to-zinc-950/90 rounded-2xl border border-zinc-800/90 shadow-2xl backdrop-blur-md overflow-hidden touch-pan-y"
         >
           {/* Deck Header Bar */}
           <div className="w-full flex items-center justify-between px-2 text-[10px] sm:text-[11px] font-mono text-zinc-400 border-b border-zinc-800/80 pb-1 shrink-0">
@@ -593,9 +635,14 @@ export default function App() {
               <span className={`w-2 h-2 rounded-full ${playerState.isPlaying ? 'bg-amber-400 animate-pulse' : 'bg-zinc-500'}`} />
               HI-FI AUDIO CONSOLE
             </span>
-            <span className="text-zinc-500 font-semibold truncate max-w-[160px] sm:max-w-[200px]">
-              {activePlaylist ? `MIXTAPE: ${activePlaylist.name.toUpperCase()}` : 'FULL LIBRARY'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="hidden xl:inline text-[9px] px-1.5 py-0.5 rounded bg-zinc-800/70 text-zinc-400 border border-zinc-700/50">
+                ⇄ Desliza para cambiar pista
+              </span>
+              <span className="text-zinc-500 font-semibold truncate max-w-[130px] sm:max-w-[170px]">
+                {activePlaylist ? `MIXTAPE: ${activePlaylist.name.toUpperCase()}` : 'FULL LIBRARY'}
+              </span>
+            </div>
           </div>
 
           {/* Hi-Fi Audio Console (Dual VU Meters & RTA Spectrum Analyzer) */}
@@ -638,10 +685,27 @@ export default function App() {
         onSelectTrack={handleSelectTrack}
         onAddCustomTrack={handleAddCustomTrack}
         onAddTrackToPlaylist={handleAddTrackToPlaylist}
-        onOpenPlaylists={() => setIsPlaylistModalOpen(true)}
+        onOpenPlaylists={() => setIsSlidingDrawerOpen(true)}
       />
 
-      {/* Playlist Manager Modal */}
+      {/* Dynamic Sliding Playlist Drawer (Gesture-driven side panel) */}
+      <SlidingPlaylistDrawer
+        isOpen={isSlidingDrawerOpen}
+        onOpen={() => setIsSlidingDrawerOpen(true)}
+        onClose={() => setIsSlidingDrawerOpen(false)}
+        playlists={playlists}
+        activePlaylistId={activePlaylistId}
+        allTracks={tracks}
+        currentTrackId={currentTrack.id}
+        onSelectPlaylistToPlay={(playlistId, startIdx) => {
+          handleSelectPlaylistToPlay(playlistId, startIdx);
+          setIsSlidingDrawerOpen(false);
+        }}
+        onOpenFullModal={() => setIsPlaylistModalOpen(true)}
+        onCreatePlaylist={handleCreatePlaylist}
+      />
+
+      {/* Complete Playlist Manager Modal (Full editing & export/import) */}
       <PlaylistModal
         isOpen={isPlaylistModalOpen}
         onClose={() => setIsPlaylistModalOpen(false)}

@@ -30,6 +30,9 @@ import { generateTrackPDF } from '../utils/pdfGenerator';
 import { fetchOriginalCoverArt, searchAllAlbumCovers, CoverSearchResult } from '../utils/coverArtFinder';
 import { SmoothCoverImage } from './SmoothCoverImage';
 import { PDFPreview } from './PDFPreview';
+import { useSwipeGesture } from '../hooks/useSwipeGesture';
+
+const TABS: ViewTab[] = ['video', 'cover', 'lyrics', 'pdf'];
 
 interface ScreenDescriptorProps {
   track: Track;
@@ -83,6 +86,36 @@ export const ScreenDescriptor: React.FC<ScreenDescriptorProps> = ({
   const [hudFeedback, setHudFeedback] = useState<'play' | 'pause' | null>(null);
   const hudTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
+  const screenContainerRef = useRef<HTMLDivElement>(null);
+  const [tabSwipeHint, setTabSwipeHint] = useState<string | null>(null);
+
+  // Swipe gesture navigation across tabs
+  const handleSwipeNextTab = () => {
+    const currentIdx = TABS.indexOf(activeTab);
+    if (currentIdx < TABS.length - 1) {
+      const nextTab = TABS[currentIdx + 1];
+      onTabChange(nextTab);
+      setTabSwipeHint(`Pestaña: ${nextTab.toUpperCase()}`);
+      setTimeout(() => setTabSwipeHint(null), 1200);
+    }
+  };
+
+  const handleSwipePrevTab = () => {
+    const currentIdx = TABS.indexOf(activeTab);
+    if (currentIdx > 0) {
+      const prevTab = TABS[currentIdx - 1];
+      onTabChange(prevTab);
+      setTabSwipeHint(`Pestaña: ${prevTab.toUpperCase()}`);
+      setTimeout(() => setTabSwipeHint(null), 1200);
+    }
+  };
+
+  useSwipeGesture({
+    targetRef: screenContainerRef,
+    onSwipeLeft: handleSwipeNextTab,
+    onSwipeRight: handleSwipePrevTab,
+    threshold: 45,
+  });
 
   // Synchronized Lyrics Parser & Auto-Scroll Logic
   interface SynchronizedLine {
@@ -322,7 +355,21 @@ export const ScreenDescriptor: React.FC<ScreenDescriptorProps> = ({
   };
 
   return (
-    <div id="screen-descriptor" className="flex flex-col h-full bg-zinc-900/90 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden backdrop-blur-md">
+    <div
+      ref={screenContainerRef}
+      id="screen-descriptor"
+      className="relative flex flex-col h-full bg-zinc-900/90 rounded-2xl border border-zinc-800 shadow-xl overflow-hidden backdrop-blur-md touch-pan-y"
+    >
+      {/* Tab Swipe HUD feedback */}
+      {tabSwipeHint && (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all">
+          <div className="px-3 py-1 rounded-full bg-zinc-900/95 border border-amber-500/50 text-amber-300 font-mono text-[11px] font-bold shadow-lg backdrop-blur-md flex items-center gap-1.5 animate-pulse">
+            <span>⇄</span>
+            <span>{tabSwipeHint}</span>
+          </div>
+        </div>
+      )}
+
       {/* Tab Navigation Header */}
       <div className="flex items-center justify-between px-2 sm:px-3 py-1 sm:py-2 landscape:py-1 bg-zinc-950/80 border-b border-zinc-800 select-none">
         <div className="flex items-center gap-1 sm:gap-2">

@@ -19,19 +19,31 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="w-full bg-zinc-950/90 border-b border-zinc-800/80 backdrop-blur-md px-2.5 sm:px-4 py-1 sm:py-2 landscape:py-1 flex items-center justify-between select-none shrink-0 h-10 sm:h-12 landscape:h-10">
       {/* Brand Identity */}
-      <div className="flex items-center gap-2">
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-sm shrink-0">
-          <Disc3 className={`w-4 h-4 sm:w-5 sm:h-5 ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} />
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.25)] shrink-0 bg-zinc-900 group">
+          <img
+            src="/app-icon.jpg"
+            alt="YouTube Cassette Player Icon"
+            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+              isPlaying ? 'brightness-110' : 'opacity-90'
+            }`}
+            referrerPolicy="no-referrer"
+          />
+          {isPlaying && (
+            <span className="absolute bottom-0.5 right-0.5 w-2 h-2 rounded-full bg-red-500 ring-1 ring-zinc-950 animate-pulse" />
+          )}
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <h1 className="text-xs sm:text-sm font-bold tracking-wider text-zinc-100 uppercase font-mono flex items-center gap-1">
-            <span>HI-FI PLAYER</span>
+          <h1 className="text-xs sm:text-sm font-bold tracking-wider text-zinc-100 uppercase font-mono flex items-center gap-1.5">
+            <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent">
+              MIXCASETE
+            </span>
             <span className="text-[9px] text-amber-500 font-semibold px-1 py-0.2 bg-amber-500/10 rounded border border-amber-500/20 hidden sm:inline">
-              AUDIO HD
+              HI-FI VINTAGE
             </span>
           </h1>
           <span className="text-[10px] font-mono text-zinc-500 hidden lg:inline">
-            • STUDIO ANALOG CONSOLE
+            • YT STEREO CONSOLE
           </span>
         </div>
       </div>
