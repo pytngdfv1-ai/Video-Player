@@ -35,7 +35,7 @@ jobs:
         run: |
           npm install --legacy-peer-deps
 
-      - name: Install Capacitor CLI and Core
+      - name: Install Capacitor CLI and Android Platform
         run: |
           npm install --legacy-peer-deps --no-save @capacitor/core@^6.0.0 @capacitor/cli@^6.0.0 @capacitor/android@^6.0.0
 
@@ -46,6 +46,47 @@ jobs:
         run: |
           npx cap add android || true
           npx cap sync android
+
+      - name: Apply Custom Cassette App Icon and Branding to Android APK
+        run: |
+          # Install ffmpeg for fast high-quality icon downscaling
+          sudo apt-get update && sudo apt-get install -y ffmpeg || true
+          
+          # Target Android mipmap directories
+          MIPMAP="android/app/src/main/res"
+          mkdir -p $MIPMAP/mipmap-mdpi
+          mkdir -p $MIPMAP/mipmap-hdpi
+          mkdir -p $MIPMAP/mipmap-xhdpi
+          mkdir -p $MIPMAP/mipmap-xxhdpi
+          mkdir -p $MIPMAP/mipmap-xxxhdpi
+          
+          # Generate icons for all standard Android screen densities from app-icon.png
+          ffmpeg -i public/app-icon.png -vf "scale=48:48" $MIPMAP/mipmap-mdpi/ic_launcher.png -y || cp public/app-icon.png $MIPMAP/mipmap-mdpi/ic_launcher.png
+          ffmpeg -i public/app-icon.png -vf "scale=72:72" $MIPMAP/mipmap-hdpi/ic_launcher.png -y || cp public/app-icon.png $MIPMAP/mipmap-hdpi/ic_launcher.png
+          ffmpeg -i public/app-icon.png -vf "scale=96:96" $MIPMAP/mipmap-xhdpi/ic_launcher.png -y || cp public/app-icon.png $MIPMAP/mipmap-xhdpi/ic_launcher.png
+          ffmpeg -i public/app-icon.png -vf "scale=144:144" $MIPMAP/mipmap-xxhdpi/ic_launcher.png -y || cp public/app-icon.png $MIPMAP/mipmap-xxhdpi/ic_launcher.png
+          ffmpeg -i public/app-icon.png -vf "scale=192:192" $MIPMAP/mipmap-xxxhdpi/ic_launcher.png -y || cp public/app-icon.png $MIPMAP/mipmap-xxxhdpi/ic_launcher.png
+          
+          # Round launcher icons
+          cp $MIPMAP/mipmap-mdpi/ic_launcher.png $MIPMAP/mipmap-mdpi/ic_launcher_round.png
+          cp $MIPMAP/mipmap-hdpi/ic_launcher.png $MIPMAP/mipmap-hdpi/ic_launcher_round.png
+          cp $MIPMAP/mipmap-xhdpi/ic_launcher.png $MIPMAP/mipmap-xhdpi/ic_launcher_round.png
+          cp $MIPMAP/mipmap-xxhdpi/ic_launcher.png $MIPMAP/mipmap-xxhdpi/ic_launcher_round.png
+          cp $MIPMAP/mipmap-xxxhdpi/ic_launcher.png $MIPMAP/mipmap-xxxhdpi/ic_launcher_round.png
+          
+          # Foreground adaptive icons
+          cp $MIPMAP/mipmap-mdpi/ic_launcher.png $MIPMAP/mipmap-mdpi/ic_launcher_foreground.png
+          cp $MIPMAP/mipmap-hdpi/ic_launcher.png $MIPMAP/mipmap-hdpi/ic_launcher_foreground.png
+          cp $MIPMAP/mipmap-xhdpi/ic_launcher.png $MIPMAP/mipmap-xhdpi/ic_launcher_foreground.png
+          cp $MIPMAP/mipmap-xxhdpi/ic_launcher.png $MIPMAP/mipmap-xxhdpi/ic_launcher_foreground.png
+          cp $MIPMAP/mipmap-xxxhdpi/ic_launcher.png $MIPMAP/mipmap-xxxhdpi/ic_launcher_foreground.png
+          
+          # Update strings.xml with app title
+          STRINGS="android/app/src/main/res/values/strings.xml"
+          if [ -f "$STRINGS" ]; then
+            sed -i 's|<string name="app_name">.*</string>|<string name="app_name">MixCasete</string>|' "$STRINGS" || true
+            sed -i 's|<string name="title_activity_main">.*</string>|<string name="title_activity_main">YouTube Cassette Player</string>|' "$STRINGS" || true
+          fi
 
       - name: Configure Android Permissions and Landscape Orientation
         run: |

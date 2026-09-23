@@ -649,7 +649,11 @@ export const ScreenDescriptor: React.FC<ScreenDescriptorProps> = ({
             <iframe
               id="youtube-embed-iframe"
               key={track.youtubeId}
-              src={`https://www.youtube-nocookie.com/embed/${track.youtubeId}?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&autoplay=0&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1`}
+              src={
+                track.youtubeId?.startsWith('search:')
+                  ? `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(track.youtubeId.replace('search:', ''))}&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&autoplay=0&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1`
+                  : `https://www.youtube-nocookie.com/embed/${track.youtubeId}?enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&autoplay=0&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&fs=0&disablekb=1&playsinline=1`
+              }
               title={`${track.artist} - ${track.title}`}
               className="w-full h-full border-0 pointer-events-none"
               tabIndex={-1}
